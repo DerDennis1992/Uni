@@ -1,0 +1,304 @@
+package obj;
+ 
+import java.util.ArrayList;
+import java.util.List;
+ 
+/**
+* Class package obj.Tree
+* @author hasufell
+*/
+public abstract class Tree implements ITree {
+ 
+public Node root;
+private List<Node> orderedlist_max = new ArrayList<Node>();
+private List<Node> orderedlist_min = new ArrayList<Node>();
+ 
+/**
+* Constructor which creates an empty root node.
+*/
+public Tree() {
+// constructor creates emtpy tree
+root = null;
+}
+ 
+/**
+* Insert method to add nodes.
+* @param newNode the new node to be inserted into the binary tree
+*/
+abstract public void insert(Node newNode);
+ 
+protected void insert(Node root, Node newNode) {
+if(root.getKey() >= newNode.getKey()) {
+// insert left
+if (root.getLeftNode() == null) {
+// just append
+root.setLeftNode(newNode);
+newNode.setTopNode(root);
+} else {
+// have to append it in the left subtree, recursion
+insert(root.getLeftNode(), newNode);
+}
+} else {
+// insert right
+if (root.getRightNode() == null) {
+// just append
+root.setRightNode(newNode);
+newNode.setTopNode(root);
+} else {
+// have to append it in the right subtree, recursion
+insert(root.getRightNode(), newNode);
+}
+}
+}
+ 
+/**
+* Delete a Node.
+* @param nodeToDelete Node to delete
+*/
+abstract public void delete(Node nodeToDelete);
+ 
+protected void deleteWrapper(Node nodeToDelete) {
+Node fathernode = nodeToDelete.getTopNode();
+Node mytmpknoten;
+Node subTreeMax;
+// Node has no child
+if(nodeToDelete.getLeftNode() == null &&
+nodeToDelete.getRightNode() == null) {
+if(fathernode == null) {
+this.root = null;
+}
+else {
+// figure out if the node we want to delete
+// is the right or left child of it's top node
+// so we know which reference to adjust
+if(fathernode.getRightNode() == nodeToDelete) {
+fathernode.setRightNode(null);
+}
+else if(fathernode.getLeftNode() ==
+nodeToDelete) {
+fathernode.setLeftNode(null);
+}
+}
+}
+// Node has two children
+else if(nodeToDelete.getLeftNode() != null &&
+nodeToDelete.getRightNode() != null) {
+// MASTER PLAN
+// we swap the maximum of the left subtree with the one we want
+// to delete; it is completely random that we pick LeftNode
+// here,
+// picking RightNode would work the same way, but does
+// not make any difference;
+// then we have to delete that maximum
+subTreeMax = getMaxOfSubtree(nodeToDelete.getLeftNode());
+if(subTreeMax.getTopNode().getRightNode() == subTreeMax) {
+subTreeMax.getTopNode().setRightNode(null);
+}
+else if (subTreeMax.getTopNode().getLeftNode() == subTreeMax){
+subTreeMax.getTopNode().setLeftNode(null);
+}
+ 
+if(fathernode == null) {
+this.root = subTreeMax;
+subTreeMax.setTopNode(null);
+}
+else {
+subTreeMax.setTopNode(fathernode);
+if(fathernode.getRightNode() == nodeToDelete) {
+fathernode.setRightNode(subTreeMax);
+}
+else if(fathernode.getLeftNode() ==
+nodeToDelete) {
+fathernode.setLeftNode(subTreeMax);
+}
+}
+subTreeMax.setRightNode(nodeToDelete.getRightNode());
+nodeToDelete.getRightNode().setTopNode(subTreeMax);
+if(nodeToDelete.getLeftNode() != subTreeMax
+&& nodeToDelete.getLeftNode() != null) {
+subTreeMax.setLeftNode(nodeToDelete.getLeftNode());
+nodeToDelete.getLeftNode().setTopNode(subTreeMax);
+}
+}
+// Node has one child
+else {
+// figure out where the child of the node is
+// we want to delete
+if(nodeToDelete.getRightNode() != null) {
+mytmpknoten = nodeToDelete.getRightNode();
+}
+else {
+mytmpknoten = nodeToDelete.getLeftNode();
+}
+ 
+// figure out if the node we want to delete
+// is the right or left child of it's top node
+// so we know which reference to adjust
+if(fathernode == null) {
+this.root = mytmpknoten;
+mytmpknoten.setTopNode(null);
+}
+else {
+if(fathernode.getRightNode() == nodeToDelete) {
+fathernode.setRightNode(mytmpknoten);
+}
+else if(fathernode.getLeftNode() ==
+nodeToDelete) {
+fathernode.setLeftNode(mytmpknoten);
+}
+mytmpknoten.setTopNode(fathernode);
+}
+}
+}
+ 
+/**
+* Get the Node with the lowest ID.
+* @return the Node with the lowest ID
+*/
+public Node getSmallestNodeById(Node root) {
+if(root.getLeftNode() != null) {
+return getSmallestNodeById(root.getLeftNode());
+}
+else {
+return root;
+}
+}
+ 
+/**
+* Get the Node with the highest ID.
+* @return the Node with the highest ID
+*/
+public Node getBiggestNodeById(Node root) {
+if(root.getRightNode() != null) {
+return getBiggestNodeById(root.getRightNode());
+}
+else {
+return root;
+}
+}
+ 
+/**
+* Get a specifc node by a an integer key.
+* @param desiredKey the integer key to match against
+* @return the Node that matches the integer key
+*/
+public Node getByKey(int desiredKey) {
+return getByKey(desiredKey, this.root);
+}
+ 
+ 
+private Node getByKey(int desiredKey, Node root)
+{
+if(root.getKey() > desiredKey) { // descend into left subtree
+if(root.getLeftNode() != null) {
+return getByKey(desiredKey, root.getLeftNode());
+}
+else {
+// root does not match and the left subtree is empty
+// which means the ID does not exist
+return null;
+}
+}
+else if (root.getKey() < desiredKey) { // descend into right subtree
+if(root.getRightNode() != null) {
+return getByKey(desiredKey, root.getRightNode());
+}
+else {
+// root does not match and the right subtree is empty
+// which means the ID does not exist
+return null;
+}
+}
+else {
+return root;
+}
+}
+ 
+protected Node getMaxOfSubtree(Node root) {
+if(root.getRightNode() == null) {
+return root;
+}
+else {
+return getMaxOfSubtree(root.getRightNode());
+}
+}
+ 
+/**
+* Merge two Trees.
+* @param newTree the Tree to merge
+*/
+public void mergeTree(Tree newTree) {
+for(Node mynode : newTree.getList_max()) {
+this.insert(new Node(mynode.getData(), mynode.getKey()));
+}
+}
+ 
+private int getDepth(Node mynode) {
+if(mynode == null) {
+return 0;
+}
+return 1 + getDepth(mynode.getTopNode());
+}
+ 
+public List<Node> getList_max() {
+orderedlist_max.clear();
+if(root != null) {
+setList_max(root);
+return orderedlist_max;
+}
+else {
+return null;
+}
+}
+ 
+private void setList_max(Node mynode) {
+if (mynode.getRightNode() != null) {
+setList_max(mynode.getRightNode());
+}
+orderedlist_max.add(mynode);
+if (mynode.getLeftNode() != null) {
+setList_max(mynode.getLeftNode());
+}
+}
+ 
+public List<Node> getList_min() {
+orderedlist_min.clear();
+if(root != null) {
+setList_min(root);
+return orderedlist_min;
+}
+else {
+return null;
+}
+}
+ 
+private void setList_min(Node mynode) {
+if (mynode.getLeftNode() != null) {
+setList_min(mynode.getLeftNode());
+}
+orderedlist_min.add(mynode);
+if (mynode.getRightNode() != null) {
+setList_min(mynode.getRightNode());
+}
+}
+ 
+/**
+* Get an ascii string that shows the tree.
+* @return String, the string that shows the tree in ascii art
+*/
+public String getAscii() {
+int i;
+String ascii = "";
+String ascii_whitespace = "";
+for(Node mynode : getList_max()) {
+int nodeDepth = getDepth(mynode);
+ascii_whitespace = "";
+for(i=nodeDepth; i > 1 ; i--) {
+ascii_whitespace = ascii_whitespace + " ";
+}
+ascii_whitespace = ascii_whitespace + "+--";
+ascii = ascii + "\n" + ascii_whitespace + mynode.getKey().toString();
+}
+return ascii;
+}
+}
