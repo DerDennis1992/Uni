@@ -1,0 +1,33 @@
+package obj;
+ 
+import java.util.ArrayList;
+import java.util.List;
+ 
+/**
+* Class package obj.BinaryTree
+* @author hasufell
+*/
+  public class BinaryTree extends Tree implements ITree {
+ 
+  /**
+  * {@inheritDoc}
+  */
+  public void insert(Node newNode) {
+  // tree is empty
+    if (root == null) 
+    {
+      root = newNode;
+    } else {
+  // otherwise recursion
+  
+  insert(root, newNode);
+  }
+}
+ 
+  /**
+  * {@inheritDoc}
+  */
+  public void delete(Node nodeToDelete) {
+  deleteWrapper(nodeToDelete);
+  }
+}
