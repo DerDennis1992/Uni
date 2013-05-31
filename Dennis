@@ -1,0 +1,132 @@
+import javax.xml.soap.Node;
+
+
+ 
+public class BinaryTree extends Tree {
+    private Node root = null;
+    
+    public boolean insert(Node neu) {
+        try {
+            if (root == null) {
+                root = neu;
+            } else {
+                insertRek(root, neu);
+            }
+            return true;
+        } catch (NullPointerException nullEx) {
+            System.out.println("In den Baum wurde nichts eingefügt. <leerer Baum>");
+            return false;
+        }
+    }
+    
+    private void insertRek(Node top, Node neu) {
+        if (neu.inhalt < top.inhalt) {
+            if (top.left == null) {
+                top.left = neu;
+            } else {
+                insertRek(top.left, neu);
+            }
+        } else if (neu.inhalt > top.inhalt){
+            if (top.right == null) {
+                top.right = neu;
+            } else {
+                insertRek(top.right, neu);
+            }
+        }
+    }
+    
+    public void ausgebenInOrder() {
+        if (root == null) {
+            System.out.println("<leerer Baum>");
+        } else {
+            ausgebenInOrder(root);
+            System.out.println();
+        }
+    }
+    
+    private void ausgebenInOrder(Node n) {
+        if (n != null) {
+            ausgebenInOrder(n.left);
+            System.out.print(n.inhalt);
+            System.out.print(" ");
+            ausgebenInOrder(n.right);
+        }
+    }
+    
+    public void ausgeben() {
+        if (root == null) {
+            System.out.println("<leerer Baum>");;
+        } else {
+            ausgeben(root, 0);
+        }
+    }
+    
+    private void ausgeben(Node n, int stufe) {
+        if (n != null) {
+            ausgeben(n.right, stufe + 1);
+            for (int i = 0; i < stufe; i++) {
+                System.out.print("    ");
+            }
+            System.out.println("+--" + n.inhalt);
+            ausgeben(n.left, stufe + 1);
+        }
+    }
+    
+    public boolean search(int wert) {
+        try {
+            if (root.inhalt == wert) {
+                System.out.println("Wert gefunden" + root.inhalt);
+                return true;
+            } else {
+                search(root, wert);
+            }
+            return true;
+        } catch (NullPointerException nullEx) {
+            return false;
+        }
+    }
+    
+    private void search(Node n, int wert) {
+            if (wert < n.inhalt) {
+                search(n.left, wert);
+            } else if (wert > n.inhalt){
+                search(n.right, wert);
+            } else if (wert == n.inhalt){
+                System.out.println("Wert gefunden " + n.inhalt);
+            }
+    }
+    public void delete(int wert) {
+    }
+    
+    public void findMin() {
+        if (root == null) {
+            System.out.println("Der Baum ist leer");
+        } else {
+            findMin(root);
+        }
+    }
+    
+    private void findMin(Node n) {
+        while (n.left != null) {
+            n = n.left;
+        }
+        System.out.println(n.inhalt + " ist der kleinste Wert");
+    }
+    public void findMax() {
+        if (root == null) {
+            System.out.println("Der Baum ist leer");
+        } else {
+            findMax(root);
+        }
+    }
+    
+    private void findMax(Node n) {
+        while (n.right != null) {
+            n = n.right;
+        }
+        System.out.println(n.inhalt + " ist der größte Wert");
+    }
+    
+    public void join(Node a, Node b) {
+        
+    }
