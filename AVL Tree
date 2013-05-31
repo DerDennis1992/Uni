@@ -1,0 +1,258 @@
+package obj;
+ 
+import java.io.*;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.lang.Math;
+ 
+/**
+* Class package obj.AVLTree
+* @author hasufell
+*/
+public class AVLTree extends Tree implements ITree {
+int subtreeHeight = 0;
+int TmpSubtreeHeight = 0;
+int amountOfTops = 0;
+ 
+/**
+* {@inheritDoc}
+*/
+public void insert(Node newNode) {
+// tree is empty
+if (root == null) {
+root = newNode;
+} else {
+// otherwise recursion
+insert(root, newNode);
+// fix the balance values of every father recursively
+fixNodeBalanceValue(newNode);
+// now we can check for unbalanced subtrees
+fixTreeBalance(newNode);
+}
+}
+ 
+/**
+* {@inheritDoc}
+*/
+public void delete(Node nodeToDelete) {
+Node fathernode = nodeToDelete.getTopNode();
+ 
+deleteWrapper(nodeToDelete);
+ 
+// Node has two children
+if(nodeToDelete.getLeftNode() != null &&
+nodeToDelete.getRightNode() != null) {
+// this node can be two steps into the subtre or one
+// depending on the tree structure
+// this is always the first node that might need
+// adjustment of it's balance values
+fixNodeBalanceValue(nodeToDelete.getLeftNode());
+fixTreeBalance(nodeToDelete.getLeftNode());
+}
+// Node has one child
+else if(nodeToDelete.getLeftNode() != null ||
+nodeToDelete.getRightNode() != null) {
+if(fathernode != null) {
+fixNodeBalanceValue(fathernode);
+fixTreeBalance(fathernode);
+}
+}
+}
+ 
+/*
+* Readjusts the int value which represents the
+* balanace of a single node.
+* This only works after inserting, not rotating.
+*/
+private void fixNodeBalanceValue(Node mychildNode) {
+Node tmpnode = mychildNode;
+while(tmpnode != null) {
+int rightHeight = 0;
+int leftHeight = 0;
+if(tmpnode.getRightNode() != null) {
+rightHeight = getHeightOfSubtree(tmpnode.getRightNode());
+}
+if(tmpnode.getLeftNode() != null) {
+leftHeight = getHeightOfSubtree(tmpnode.getLeftNode());
+}
+int heightDiff = rightHeight - leftHeight;
+tmpnode.setBalance(heightDiff);
+tmpnode = tmpnode.getTopNode();
+}
+}
+ 
+/*
+* We rotate the left child node to the right
+*/
+private void rotateRight(Node myrootNode) {
+Node child = myrootNode.getLeftNode();
+// if we have no great-grandfather that means we
+// get a new root node; set this boolean for later
+// conditionals
+boolean needToResetRoot = false;
+if(myrootNode.getTopNode() == null) {
+needToResetRoot = true;
+}
+if(needToResetRoot) {
+child.setTopNode(null);
+this.root = child;
+}
+else {
+child.setTopNode(myrootNode.getTopNode());
+// adjust the top node of the whole subtree we want to rotate
+if(myrootNode.getTopNode().getRightNode() == myrootNode) {
+myrootNode.getTopNode().setRightNode(child);
+}
+else {
+myrootNode.getTopNode().setLeftNode(child);
+}
+}
+ 
+myrootNode.setLeftNode(child.getRightNode());
+if(child.getRightNode() != null) {
+child.getRightNode().setTopNode(myrootNode);
+}
+child.setRightNode(myrootNode);
+myrootNode.setTopNode(child);
+ 
+// fix balance values
+fixNodeBalanceValue(myrootNode);
+}
+ 
+/*
+* We rotate the right child node to the left
+*/
+private void rotateLeft(Node myrootNode) {
+Node child = myrootNode.getRightNode();
+// if we have no great-grandfather that means we
+// get a new root node; set this boolean for later
+// conditionals
+boolean needToResetRoot = false;
+if(myrootNode.getTopNode() == null) {
+needToResetRoot = true;
+}
+ 
+if(needToResetRoot) {
+child.setTopNode(null);
+this.root = child;
+}
+else {
+child.setTopNode(myrootNode.getTopNode());
+// adjust the top node of the whole subtree we want to rotate
+if(myrootNode.getTopNode().getRightNode() == myrootNode) {
+myrootNode.getTopNode().setRightNode(child);
+}
+else {
+myrootNode.getTopNode().setLeftNode(child);
+}
+}
+ 
+myrootNode.setRightNode(child.getLeftNode());
+if(child.getLeftNode() != null) {
+child.getLeftNode().setTopNode(myrootNode);
+}
+child.setLeftNode(myrootNode);
+myrootNode.setTopNode(child);
+ 
+// fix balance values
+fixNodeBalanceValue(myrootNode);
+}
+ 
+/*
+* Fixes the balance of the tree with the passed root node
+*/
+private void fixTreeBalance(Node myrootNode) {
+Node tmpnode = myrootNode;
+ 
+while(tmpnode != null) {
+int balance = tmpnode.getBalance();
+// whether the deeper subtree is left or right
+if(balance == 2) {
+// following action depends on the right child
+Node child = tmpnode.getRightNode();
+ 
+if(tmpnode.getRightNode().getBalance() == -1) {
+// double rotation:
+// rotate the right child node to the right...
+tmpnode.setRightNode(child.getLeftNode());
+child.getLeftNode().setTopNode(tmpnode);
+child.setTopNode(child.getLeftNode());
+if(tmpnode.getRightNode().getRightNode() != null) {
+child.setLeftNode(tmpnode.getRightNode().
+getRightNode());
+child.getLeftNode().setTopNode(child);
+}
+else {
+child.setLeftNode(null);
+}
+tmpnode.getRightNode().setRightNode(child);
+ 
+fixNodeBalanceValue(child);
+ 
+// then rotate the root node to the left
+rotateLeft(tmpnode);
+break;
+}
+else if(tmpnode.getRightNode().getBalance() == 0 ||
+tmpnode.getRightNode().getBalance() == 1) {
+// rotate the root to the left
+rotateLeft(tmpnode);
+break;
+}
+else {
+// should never happen
+}
+}
+else if(balance == -2) {
+// following action depends on the left child
+Node child = tmpnode.getLeftNode();
+ 
+if(tmpnode.getLeftNode().getBalance() == 1) {
+// double rotation:
+// rotate the left child node to the left...
+tmpnode.setLeftNode(child.getRightNode());
+child.getRightNode().setTopNode(tmpnode);
+child.setTopNode(child.getRightNode());
+if(tmpnode.getLeftNode().getLeftNode() != null) {
+child.setRightNode(tmpnode.getLeftNode().
+getLeftNode());
+child.getRightNode().setTopNode(child);
+}
+else {
+child.setRightNode(null);
+}
+tmpnode.getLeftNode().setLeftNode(child);
+ 
+fixNodeBalanceValue(child);
+ 
+// then rotate the root node to the right
+rotateRight(tmpnode);
+break;
+}
+else if(tmpnode.getLeftNode().getBalance() == -1 ||
+tmpnode.getLeftNode().getBalance() == 0) {
+// rotate the root to the right
+rotateRight(tmpnode);
+break;
+}
+else {
+// should never happen
+}
+}
+ 
+tmpnode = tmpnode.getTopNode();
+}
+}
+ 
+/*
+* Get the height of the subtree
+*/
+private int getHeightOfSubtree(Node mynode) {
+if(mynode == null) {
+return 0;
+}
+return 1 + Math.max(getHeightOfSubtree(mynode.getLeftNode()),
+getHeightOfSubtree(mynode.getRightNode()));
+}
+}
